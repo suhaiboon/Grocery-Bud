@@ -7,17 +7,69 @@ function App() {
   const [list, setList] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editID, setEditID] = useState(null);
-  const [alert, setAlert] = useState({ show: false, msg: "", type: "" });
+  const [alert, setAlert] = useState({
+    show: true,
+    msg: "",
+    type: "",
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!name) {
+      //display alert
+      // setAlert({ show: true, msg: "Please Enter Value", type: "danger" });
+      // we using the function to save time and space
+      showAlert(true, "danger", "Please Enter Value");
+    } else if (name && isEditing) {
+      //deal with edit
+      setList(
+        list.map((item) => {
+          if (item.id === editItem) {
+            return { ...item, title: name };
+          }
+          return item;
+        })
+      );
+      setName("");
+      setEditID(null);
+      setIsEditing(false);
+      showAlert(true, "success", "Item Edited");
+    } else {
+      //show alert
+      showAlert(true, "success", "Item Added");
+      //add item to list
+      const newItem = { id: new Date().getTime.toString, title: name };
+      setList([...list, newItem]);
+      setName("");
+    }
     // console.log("hello");
+  };
+
+  const showAlert = (show = false, type = "", msg = "") => {
+    setAlert({ show, type, msg });
+  };
+
+  const clearList = () => {
+    showAlert(true, "danger", "List Cleared");
+    setList("");
+  };
+
+  const removeItem = (id) => {
+    showAlert(true, "danger", "Item Removed");
+    setList(list.filter((item) => item.id !== id));
+  };
+
+  const editItem = (id) => {
+    const specificItem = list.find((item) => item.id === id);
+    setIsEditing(true);
+    setEditID(id);
+    setName(specificItem.title);
   };
 
   return (
     <section className="section-center">
       <form className="grocery-form" onSubmit={handleSubmit}>
-        {alert.show && <Alert />}
+        {alert.show && <Alert {...alert} removeAlert={showAlert} list={list} />}
         <h3>grocery bud</h3>
         <div className="form-control">
           <input
@@ -32,10 +84,15 @@ function App() {
           </button>
         </div>
       </form>
-      <div className="grocery-container">
-        <List />
-        <button className="clear-btn">clear Items</button>
-      </div>
+      {/* //so clear button don't show unless we at least have one item */}
+      {list.length > 0 && (
+        <div className="grocery-container">
+          <List items={list} removeItem={removeItem} editItem={editItem} />
+          <button className="clear-btn" onClick={clearList}>
+            clear Items
+          </button>
+        </div>
+      )}
     </section>
   );
 }
